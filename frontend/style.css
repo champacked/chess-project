@@ -1,0 +1,64 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Center the content vertically and horizontally */
+body, html {
+    height: 100%;
+    display: flex;
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9; /* Light background */
+}
+
+/* Centering the container for the chessboard and buttons */
+#chessboard-container {
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow around the container */
+}
+
+/* Styling the chessboard */
+#chessboard {
+    width: 400px; /* Set the width of the chessboard */
+    margin-bottom: 20px; /* Space between the chessboard and buttons */
+}
+
+/* Title styling */
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Button styling */
+button {
+    background-color: #4CAF50; 
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 10px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+button:focus {
+    outline: none; /* Remove focus outline */
+}
+
+/* Space buttons for better alignment */
+button:nth-child(n+2) {
+    margin-left: 10px; /* Adds space between buttons */
+}
