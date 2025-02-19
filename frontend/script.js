@@ -1,4 +1,4 @@
-    
+
 var config = {
     draggable: true,
     position: 'start',
