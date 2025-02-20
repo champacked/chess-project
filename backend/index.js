@@ -4,18 +4,17 @@ import { Chess } from "chess.js";
 import fetch from "node-fetch"; 
 
 const app = express();
-const port = 3000;
+const port = 8000;
 
 app.use(cors());
 app.use(express.json());
 
 let game = new Chess(); 
 
-// Start a new game
-app.post("/new-game", (req, res) => {
-    game = new Chess();
-    res.json({ message: "New game started", fen: game.fen() });
-});
+app.get("/",(res,req) => { 
+console.log("hello backend is up");
+})
+
 
 // Validate and apply a move
 app.post("/move", (req, res) => {
@@ -40,6 +39,7 @@ app.post("/move", (req, res) => {
 
 // Get Stockfish AI move
 app.get("/ai-move", async (req, res) => {
+    console.log("entered here");
 
     if (game.isGameOver()) {
         return res.json({ error: "Game is over" });

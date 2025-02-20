@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -9,10 +8,10 @@
 body, html {
     height: 100%;
     display: flex;
-    justify-content: center; /* Horizontally center */
-    align-items: center; /* Vertically center */
+    justify-content: center;
+    align-items: center;
     font-family: Arial, sans-serif;
-    background-color: #f4f4f9; /* Light background */
+    background-color: #f4f4f9;
 }
 
 /* Centering the container for the chessboard and buttons */
@@ -21,13 +20,13 @@ body, html {
     padding: 20px;
     border-radius: 10px;
     background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow around the container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Styling the chessboard */
 #chessboard {
-    width: 400px; /* Set the width of the chessboard */
-    margin-bottom: 20px; /* Space between the chessboard and buttons */
+    width: 400px;
+    margin: 20px auto;
 }
 
 /* Title styling */
@@ -37,28 +36,64 @@ h1 {
     color: #333;
 }
 
+/* Game status styling */
+#game-status {
+    margin: 10px 0;
+    padding: 10px;
+    color: #666;
+    font-size: 1.1em;
+    min-height: 40px;
+}
+
+/* Controls container */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
 /* Button styling */
 button {
-    background-color: #4CAF50; 
+    background-color: #4CAF50;
     border: none;
     color: white;
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
     border-radius: 5px;
-    margin: 10px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.1s;
 }
 
 button:hover {
-    background-color: #45a049; /* Darker green on hover */
+    background-color: #45a049;
+    transform: translateY(-1px);
 }
 
-button:focus {
-    outline: none; /* Remove focus outline */
+button:active {
+    transform: translateY(1px);
 }
 
-/* Space buttons for better alignment */
-button:nth-child(n+2) {
-    margin-left: 10px; /* Adds space between buttons */
+#startGame {
+    background-color: #2196F3;
+}
+
+#startGame:hover {
+    background-color: #1976D2;
+}
+
+#flipBoard {
+    background-color: #FF9800;
+}
+
+#flipBoard:hover {
+    background-color: #F57C00;
+}
+
+#clearBoard {
+    background-color: #f44336;
+}
+
+#clearBoard:hover {
+    background-color: #d32f2f;
 }
