@@ -18,7 +18,7 @@ export const playerMove = async (req, res) => {
     }
 
     if (game.isGameOver()) {
-        return res.status(404).json({ error: "Game is over" });
+        return res.status(404).json({ error: "Game is over" })
     }
 
 
