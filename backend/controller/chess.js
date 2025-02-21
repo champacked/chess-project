@@ -76,7 +76,7 @@ export const aiMove = async (req, res) => {
                 
                 if (!data && !data.success || !data.bestmove) {
                     
-                    return res.status(500).json({ error: "Stockfish API error" });
+                    return res.status(500).json({ error: "Stockfish API  error" });
                 }
                 
                 const bestMove = data.bestmove?.split(" ")[1] || data.bestmove;
