@@ -51,12 +51,13 @@ export const playerMove = async (req, res) => {
 };
 
 export const aiMove = async (req, res) => {
-
+    // if game already over 
     if (game.isGameOver()) {
 
         return res.status(401).json({ error: "Game is over" });
     }
 
+    // find best move 
     try {
 
         const fen = game.fen();
@@ -75,6 +76,8 @@ export const aiMove = async (req, res) => {
 
         const bestMove = data.bestmove.split(" ")[1];
         const result = game.move(bestMove);
+
+        // after automatic move by stockfish check game is over
 
         if (game.isGameOver()) {
             return res.status(200).json(
@@ -125,7 +128,7 @@ export const getGameResult = async (req, res) => {
         return res.status(200).json({
             message: "Game Drawn",
             gameOver: true,
-            winner: `No one `,
+            winner: "No one",
         });
     } else if (game.isGameOver()) {
         return res.status(200).json({
