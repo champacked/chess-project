@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 let game = new Chess();
 
 export const startGame = async (req, res) => {
-    game = new Chess();
+    game = new Chess(); 
 
     return res.json({ message: "New game started", fen: game.fen() });
 };
