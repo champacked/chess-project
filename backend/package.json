@@ -5,15 +5,13 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "nodemon index.js , node index.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "chess": "^1.2.2",
-    "chess-fen": "^1.0.2",
-    "chess.js": "^0.13.0",
+    "chess.js": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "node-fetch": "^3.3.2",

@@ -12,7 +12,7 @@ function App() {
       const result = gameCopy.move(move);
       setGame(gameCopy);
       return result;
-    } catch (error) {
+    } catch (error) { 
       return null;
     }
   }
