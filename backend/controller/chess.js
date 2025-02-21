@@ -11,10 +11,10 @@ export const startGame = async (req, res) => {
 
 export const playerMove = async (req, res) => {
 
-    const { move } = req.body;
+    const { move } = req.body;   
 
     if (!move) {
-        return res.status(400).json({ error: "Move is required" });
+        return res.status(400).json({ error: "Move is required" })  ;
     }
 
     if (game.isGameOver()) {
