@@ -3,12 +3,16 @@ import fetch from "node-fetch";
 
 let game = new Chess();
 
+
+// start the game 
 export const startGame = async (req, res) => {
     game = new Chess(); 
 
     return res.json({ message: "New game started", fen: game.fen() });
 };
 
+
+//  get user move 
 export const playerMove = async (req, res) => {
 
     const { move } = req.body;   
@@ -50,8 +54,11 @@ export const playerMove = async (req, res) => {
 
 };
 
+// get AI move (Automatic move using stockfish api)
 export const aiMove = async (req, res) => {
+
     // if game already over 
+
     if (game.isGameOver()) {
 
         return res.status(401).json({ error: "Game is over" });
@@ -122,11 +129,13 @@ export const aiMove = async (req, res) => {
             }
 };
 
+// get position controller
 export const getPosition = async (req, res) => {
     return res.status(200).json({ fen: game.fen(), turn: game.turn() });
 };
 
 
+// check the game result 
 export const getGameResult = async (req, res) => {
     if (game.isCheckmate()) {
         return res.status(200).json({
