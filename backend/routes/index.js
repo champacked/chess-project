@@ -8,6 +8,7 @@ routes.get("/new-game", startGame);
 routes.post("/move", playerMove);
 routes.get("/ai-move", aiMove);
 routes.get("/position", getPosition);
-routes.get("/get-game-result", getGameResult);
+routes.get("/get-game-result", getGameResult) ; 
+
 
 export default routes;
