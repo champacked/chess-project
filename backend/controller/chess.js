@@ -5,6 +5,7 @@ let game = new Chess();
 
 export const startGame = async (req, res) => {
     game = new Chess(); 
+    console.log(res.json);
 
     return res.json({ message: "New game started", fen: game.fen() });
 };

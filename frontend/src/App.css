@@ -1,52 +1,77 @@
-#root {
-  max-width: 1280px;
+.app {
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-}
-
-.app {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  min-height: 100vh;
+}
+
+h1 {
+  color: #ffffff;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.game-status {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  min-height: 2rem;
+  color: #ffffff;
+  opacity: 0.9;
 }
 
 .board-container {
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  background-color: #2c2c2c;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure chess pieces stay visible during drag */
+.board-container > div {
   border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: visible !important;
+}
+
+/* Style for chess pieces */
+.piece-417db {
+  z-index: 5;
+  cursor: grab;
+}
+
+/* Style for dragged pieces */
+.piece-417db:active {
+  cursor: grabbing;
 }
 
 .controls {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 1rem;
+  margin-top: 1rem;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
+.new-game-btn {
   background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+  color: #ffffff;
+  border: 1px solid #333;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
 }
 
-button:hover {
-  border-color: #646cff;
+.new-game-btn:hover {
+  background-color: #333;
+  border-color: #444;
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  button {
-    background-color: #f9f9f9;
-  }
+.new-game-btn:active {
+  transform: translateY(1px);
 }
