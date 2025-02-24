@@ -3,7 +3,7 @@ import cors from "cors";
 import chessRoutes from './routes/index.js';
 
 const app = express();
-const port = 8000;
+const port = 9000;
 
 app.use(cors());
 app.use(express.json());

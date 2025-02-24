@@ -3,7 +3,7 @@ import { Chessboard } from 'react-chessboard';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = 'http://localhost:9000';
 console.log(API_URL);
 
 function App() {
@@ -11,6 +11,7 @@ function App() {
   const [gameStatus, setGameStatus] = useState('');
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState('');
+  const [currentTurn, setCurrentTurn] = useState('w');
 
   const startNewGame = useCallback(async () => {
     try {
@@ -19,16 +20,22 @@ function App() {
       setIsGameOver(false);
       setWinner('');
       setGameStatus('Game Status: Playing');
+      setCurrentTurn('w');
     } catch (error) {
       console.error('Error starting new game:', error);
-        setGameStatus(`Error starting new game: ${error.response?.data?.error || error.message}`);
-      
+      setGameStatus(`Error starting new game: ${error.response?.data?.error || error.message}`);
     }
   }, []);
 
   useEffect(() => {
     startNewGame();
   }, [startNewGame]);
+
+  // Update current turn whenever FEN changes
+  useEffect(() => {
+    const turn = fen.split(' ')[1];
+    setCurrentTurn(turn);
+  }, [fen]);
 
   const makeMove = async (move) => {
     if (isGameOver) {
@@ -57,7 +64,6 @@ function App() {
     }
   };
 
-  // ai-move function 
   const makeAIMove = async () => {
     try {
       setGameStatus('AI is thinking...');
@@ -108,6 +114,10 @@ function App() {
   return (
     <div className="app">
       <h1>Chess Game</h1>
+      <div className="turn-indicator">
+        <span className="turn-indicator-dot"></span>
+        Current Turn: {currentTurn === 'w' ? 'White' : 'Black'}
+      </div>
       <div className="board-container">
         <Chessboard 
           position={fen} 
