@@ -3,8 +3,10 @@ import { Chessboard } from 'react-chessboard';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'http://localhost:9000';
+
+const API_URL = `${process.env.REACT_APP_API_URL}`;
 console.log(API_URL);
+
 
 function App() {
 
@@ -37,7 +39,7 @@ function App() {
   // Update current turn whenever FEN changes
   useEffect(() => {
     const turn = fen.split(' ')[1];
-    setCurrentTurn(turn);
+    setPlayerTurn(turn);
   }, [fen]);
 
   const makeMove = async (move) => {
