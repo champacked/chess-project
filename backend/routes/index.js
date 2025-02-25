@@ -1,8 +1,8 @@
 
 import express from "express";
 import { startGame, playerMove, aiMove, getPosition , getGameResult, undoMove , moveTurn , drawGame} from "../controller/chess.js";
-
 const routes = express.Router();
+
 
 routes.get("/new-game", startGame);
 routes.post("/move", playerMove);
