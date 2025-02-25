@@ -10,7 +10,7 @@ routes.get("/ai-move", aiMove);
 routes.get("/position", getPosition);
 routes.get("/get-game-result", getGameResult);
 routes.get("/undo-move", undoMove);
-// routes.get("/move-turn", moveTurn);
+routes.get("/move-turn", moveTurn)
 routes.post("/draw-game", drawGame);
 
 
