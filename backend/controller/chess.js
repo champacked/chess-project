@@ -3,19 +3,22 @@ import fetch from "node-fetch";
 
 let game = new Chess();
 
-export const startGame = async (req, res) => {
-    game = new Chess(); 
-    console.log(res.json);
 
-    return res.json({ message: "New game started", fen: game.fen() });
+// start the game 
+export const startGame = async (req, res) => {
+    game = new Chess();
+
+    return res.json({ message: "New game started", fen: game.fen(), turn: game.turn() });
 };
 
+
+//  get user move 
 export const playerMove = async (req, res) => {
 
-    const { move } = req.body;   
+    const { move } = req.body;
 
     if (!move) {
-        return res.status(400).json({ error: "Move is required" })  ;
+        return res.status(400).json({ error: "Move is required" });
     }
 
     if (game.isGameOver()) {
@@ -41,6 +44,7 @@ export const playerMove = async (req, res) => {
             message: "Move applied",
             move: result,
             fen: game.fen(),
+            turn: game.turn(),
             gameOver: game.isGameOver()
         });
 
@@ -51,73 +55,88 @@ export const playerMove = async (req, res) => {
 
 };
 
+// get AI move (Automatic move using stockfish api)
 export const aiMove = async (req, res) => {
+
     // if game already over 
+
     if (game.isGameOver()) {
 
         return res.status(401).json({ error: "Game is over" });
     }
 
-    // find best move 
-    try {
+    const validTurn = game.turn();
+    if (validTurn === 'b') {
 
-        const fen = game.fen();
-        const depth = 12;
 
-        const response = await fetch(
-            `https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=${depth}`
-        );
+        // find best move 
+        try {
 
-        const data = await response.json();
+            const fen = game.fen();
+            const depth = 12;
 
-        if (data && !data.success || !data.bestmove) {
+            const response = await fetch(
+                `https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=${depth}`
+            );
 
-            return res.status(500).json({ error: "Stockfish API error" });
+            const data = await response.json();
+
+
+            if (!data && !data.success || !data.bestmove) {
+
+                return res.status(500).json({ error: "Stockfish API  error" });
+            }
+
+            const bestMove = data.bestmove?.split(" ")[1] || data.bestmove;
+            const result = game.move(bestMove);
+
+            // after automatic move by stockfish check game is over
+
+            if (game.isGameOver()) {
+                return res.status(200).json(
+                    {
+                        message: "AI moved",
+                        bestMove,
+                        fen: game.fen(),
+                        evaluation: data.evaluation,
+                        mate: data.mate,
+                        gameOver: game.isGameOver(),
+                        winner: `${game.turn() === "w" ? "Black" : "White"}`,
+                    })
+            }
+
+            if (!result) {
+                return res.status(500).json({ error: "AI move was invalid" });
+            }
+
+            return res.status(200).json({
+                message: "AI moved",
+                bestMove,
+                fen: game.fen(),
+                evaluation: data.evaluation,
+                mate: data.mate,
+                gameOver: game.isGameOver(),
+                turn: game.turn()
+
+            });
+
+
+        } catch (error) {
+
+            return res.status(500).json({ error: "Failed to get AI move" });
         }
-
-        const bestMove = data.bestmove.split(" ")[1];
-        const result = game.move(bestMove);
-
-        // after automatic move by stockfish check game is over
-
-        if (game.isGameOver()) {
-            return res.status(200).json(
-                {
-                    message: "AI moved",
-                    bestMove,
-                    fen: game.fen(),
-                    evaluation: data.evaluation,
-                    mate: data.mate,
-                    gameOver: game.isGameOver(),
-                    winner: `${game.turn() === "w" ? "Black" : "White"}`,
-                })
-        }
-
-        if (!result) {
-            return res.status(500).json({ error: "AI move was invalid" });
-        }
-
-        return res.status(200).json({
-            message: "AI moved",
-            bestMove,
-            fen: game.fen(),
-            evaluation: data.evaluation,
-            mate: data.mate,
-            gameOver: game.isGameOver()
-
-        });
-
-    } catch (error) {
-
-        return res.status(500).json({ error: "Failed to get AI move" });
+    } else {
+        return res.status(500).json({ error: "invalid turn" });
     }
 };
 
+// get position controller
 export const getPosition = async (req, res) => {
     return res.status(200).json({ fen: game.fen(), turn: game.turn() });
 };
 
 
+// check the game result 
 export const getGameResult = async (req, res) => {
     if (game.isCheckmate()) {
         return res.status(200).json({
@@ -145,3 +164,106 @@ export const getGameResult = async (req, res) => {
     }
 };
 
+// undo move or go back to previous game state
+export const undoMove = async (req, res) => {
+    if (!game) {
+
+        return res.status(401).json({ error: "Game is not initialized" });
+    }
+    else {
+        const undo_move = game.undo();
+
+        if (undo_move) {
+            return res.status(200).json(
+                {
+                    fen: game.fen(),
+                    turn: game.turn(),
+                    gameOver: game.isGameOver(),
+
+                })
+        } else {
+            return res.status(400).json(
+                {
+                    error: "there is No Move to undo!!!"
+                })
+        }
+    }
+
+
+}
+
+// get the move turn 
+export const moveTurn = async (req, res) => {
+    if (!game) {
+
+        return res.status(401).json({ error: "Game is not initialized" });
+    }
+    else {
+
+        const turn = game.turn();
+
+        if (turn) {
+            return res.status(200).json(
+                {
+                    turn: turn
+
+                })
+        } else {
+            return res.status(400).json(
+                {
+                    error: "invalid turn !!!"
+                })
+        }
+    }
+
+
+}
+
+
+// draw game  
+export const drawGame = async (req, res) => {
+
+    try {
+        if (!game) {
+            return res.status(401).json({ error: "Game is not initialized" });
+        }
+        else if (game.isDrawByFiftyMoves()) {
+            return res.status(200).json({
+                message: "Draw By Fifty Moves",
+            }); 
+        } else if (game.isInsufficientMaterial()) {
+            return res.status(200).json({
+                message: "draw due InsufficientMaterial",
+            });  
+
+        } else {
+
+            const fen = game.fen();
+            const depth = 12;
+
+            const response = await fetch(`https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=${depth}`);
+
+
+            const data = await response.json();
+            if (data && data.evaluation && Math.abs(data.evaluation) < 50) 
+            {
+                console.log(game.isDraw());
+                return res.status(200).json({
+                    message: "draw accepted",
+                    isGameDraw:true
+                });     
+            }
+
+            return res.status(400).json({
+                message: "draw delined",
+                isGameDraw:false,
+                
+            });
+
+        }
+    } catch (error){
+
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+};
