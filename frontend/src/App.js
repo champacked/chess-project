@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Chessboard } from 'react-chessboard';
+import ReplayIcon from '@mui/icons-material/Replay';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import FlipCameraAndroidIcon from '@mui/icons-material/FlipCameraAndroid';
+import FlipIcon from '@mui/icons-material/Flip';
 import axios from 'axios';
 import './App.css';
 
@@ -126,13 +133,31 @@ function App() {
     }
   };
 
+  const handleRedoMove = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/redo-move`);
+      console.log("undo move :", response.data);
+      setIsGameOver(response.data?.gameOver);
+      setWinner(response.data.winner);
+      setGameStatus('undo move done!!!');
+      setFen(response?.data?.fen)
+    } catch (error) {
+      console.error('Error checking game result:', error);
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
+  };
+
   const handleDrawGame = async () => {
     try {
       const response = await axios.post(`${API_URL}/draw-game`);
-      console.log( response.data.message);
+      console.log(response.data.message);
       setIsGameOver(response.data?.isGameDraw);
       setGameStatus('Game is Drawn');
-     
+
     } catch (error) {
       console.error('Error checking game result:', error);
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
@@ -158,7 +183,7 @@ function App() {
   return (
     <div className="app">
       <h1>Chess Game</h1>
-      <button>{(PlayerTurn === 'w' && "Your's Turn" )||(PlayerTurn === 'b' && "Computer's Turn")}</button>
+      <button>{(PlayerTurn === 'w' && "Your's Turn") || (PlayerTurn === 'b' && "Computer's Turn")}</button>
 
       <div className="board-container">
         <Chessboard
@@ -173,20 +198,25 @@ function App() {
           animationDuration={200}
           customDropSquareStyle={{ boxShadow: 'inset 0 0 1px 4px yellow' }}
         />
-       
+
       </div>
       <div className='game-Btn'>
+        <SkipPreviousIcon onClick={startNewGame}/>
+        <ChevronLeftIcon onClick={handleUndoMove}/>
+        <ChevronRightIcon onClick={handleRedoMove} />
+        <SkipNextIcon onClick={startNewGame} />
+        <FlipIcon />
+        <ReplayIcon onClick={handleUndoMove} />
+      </div>
+
+
+      <div className="game-status">
         <button onClick={startNewGame} className="new-game-btn">
           Reset Game
-        </button>
-        <button onClick={handleUndoMove} className="new-game-btn">
-          Undo Move
         </button>
         <button onClick={handleDrawGame} className="new-game-btn">
           Draw
         </button>
-      </div>
-      <div className="game-status">
         <p>{gameStatus}</p>
       </div>
 
