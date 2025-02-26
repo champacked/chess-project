@@ -3,6 +3,7 @@ import fetch from "node-fetch";
 
 let game = new Chess();
 
+const stack=[];
 
 // start the game 
 export const startGame = async (req, res) => {
@@ -35,7 +36,7 @@ export const playerMove = async (req, res) => {
     try {
 
         const result = game.move(move);
-        console.log("not allowed move ", result)
+        console.log("move ", result)
         if (!result) {
             return res.status(400).json({ error: "Invalid move" });
         }
@@ -108,7 +109,8 @@ export const aiMove = async (req, res) => {
             if (!result) {
                 return res.status(500).json({ error: "AI move was invalid" });
             }
-
+            stack.push(game.fen());
+ 
             return res.status(200).json({
                 message: "AI moved",
                 bestMove,
@@ -174,9 +176,38 @@ export const undoMove = async (req, res) => {
         const undo_move = game.undo();
 
         if (undo_move) {
+            stack.push(game.fen());
+            console.log(stack);
             return res.status(200).json(
                 {
                     fen: game.fen(),
+                    turn: game.turn(),
+                    gameOver: game.isGameOver(),
+
+                })
+        } else {
+            return res.status(400).json(
+                {
+                    error: "there is No Move to undo!!!"
+                })
+        }
+    }
+}
+
+// redo move or go back to next game state
+export const redoMove = async (req, res) => {
+    if (!game) {
+
+        return res.status(401).json({ error: "Game is not initialized" });
+    }
+    else {
+        const redo_move = stack.shift();
+        console.log("redo :-", redo_move)
+
+        if (redo_move) {
+            return res.status(200).json(
+                {
+                    fen: redo_move,
                     turn: game.turn(),
                     gameOver: game.isGameOver(),
 
