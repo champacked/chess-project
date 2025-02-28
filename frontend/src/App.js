@@ -34,6 +34,7 @@ function App() {
       setWinner('');
       setGameStatus('Game Status: Playing');
       setPlayerTurn(response?.data?.turn);
+      setMoveList([])
 
     } catch (error) {
       console.error('Error starting new game:', error);
@@ -277,19 +278,7 @@ function App() {
       </div>
 
 
-      <div className="game-status">
-        <button onClick={startNewGame} className="new-game-btn">
-          Reset Game
-        </button>
-        <button onClick={handleDrawGame} className="new-game-btn">
-          Draw
-        </button>
-        <button onClick={handleResignGame} className="new-game-btn">
-          Resign
-        </button>
-        <p>{gameStatus}</p>
-      </div>
-
+      
     </div>
   );
 }
