@@ -35,6 +35,7 @@ function App() {
       setGameStatus('Game Status: Playing');
       setPlayerTurn(response?.data?.turn);
       setMoveList([])
+      
 
     } catch (error) {
       console.error('Error starting new game:', error);
