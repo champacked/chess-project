@@ -181,9 +181,7 @@ export const undoMove = async (req, res) => {
         let undo_move = game.undo();
            undo_move= game.undo();
 
-
         if (undo_move) {
-             
             stack.push({fen:game.fen(), turn:game.turn()});
             console.log(stack);
             return res.status(200).json(
