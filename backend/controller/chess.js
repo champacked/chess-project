@@ -298,3 +298,31 @@ export const drawGame = async (req, res) => {
     }
 
 };
+
+export const resignGame = async (req, res) => {
+    if (!game) {
+        return res.status(400).json({ error: "Game is not initialized" });
+    }
+
+  //  game.isGameOver();
+
+    res.json({ message: "Game over. A player has resigned.",
+        gameOver:true,
+     });
+};
+
+
+// export const resignGame = async (req, res) => {
+//     if (!game) {
+//         return res.status(401).json({ error: "Game is not initialized" });
+//     }
+
+//     const { gameId, player } = req.body;
+
+//     if (!game[gameId]) {
+//         return res.status(400).json({ error: 'Invalid game ID' });
+//     }
+
+//     game[gameId].status = 'ended';
+//     res.json({ gameId, message: `${player} has resigned. Game over.` });
+// };

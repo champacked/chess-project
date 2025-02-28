@@ -1,6 +1,6 @@
 
 import express from "express";
-import { startGame, playerMove, aiMove, getPosition , getGameResult, undoMove , redoMove , moveTurn , drawGame} from "../controller/chess.js";
+import { startGame, playerMove, aiMove, getPosition , getGameResult, undoMove , redoMove , moveTurn , drawGame, resignGame} from "../controller/chess.js";
 const routes = express.Router();
 
 
@@ -13,6 +13,8 @@ routes.get("/undo-move", undoMove);
 routes.get("/redo-move", redoMove);
 routes.get("/move-turn", moveTurn)
 routes.post("/draw-game", drawGame);
+routes.post("/resign-game", resignGame);
+
 
 
 

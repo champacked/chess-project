@@ -168,6 +168,25 @@ function App() {
     }
   };
 
+  const handleResignGame = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/resign-game`);
+      console.log(response.data.message);
+  
+      setIsGameOver(true);
+      setGameStatus(response.data.message || 'Game resigned');
+  
+    } catch (error) {
+      console.error('Error resigning game:', error);
+  
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error resigning game: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
+  };
+  
 
 
   const onDrop = (sourceSquare, targetSquare) => {
@@ -217,11 +236,15 @@ function App() {
         <button onClick={handleDrawGame} className="new-game-btn">
           Draw
         </button>
+        <button onClick={handleResignGame} className="new-game-btn">
+          Resign
+        </button>
         <p>{gameStatus}</p>
       </div>
 
     </div>
   );
 }
+
 
 export default App;
