@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { Chess } from 'chess.js'
 import ReplayIcon from '@mui/icons-material/Replay';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import FlipCameraAndroidIcon from '@mui/icons-material/FlipCameraAndroid';
 import FlipIcon from '@mui/icons-material/Flip';
 import axios from 'axios';
 import './App.css';
@@ -16,13 +16,16 @@ console.log(API_URL);
 
 
 function App() {
-
+  
   const [fen, setFen] = useState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
   const [gameStatus, setGameStatus] = useState('');
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState('');
   const [PlayerTurn, setPlayerTurn] = useState('');
-
+  const [moveList, setMoveList] = useState([]);
+  let [currentHistoryPointer, setCurrentHistoryPointer] = useState(0)
+  const game = new Chess()
+  
   const startNewGame = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/new-game`);
@@ -58,8 +61,10 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/move`, { move });
       setFen(response.data.fen);
-      console.log(response.data.turn);
+      console.log(response.data);
       setPlayerTurn(response?.data?.turn);
+      setMoveList(response?.data?.moveList || []);
+
       if (response.data.gameOver) {
         await checkGameResult();
       } else {
@@ -83,6 +88,8 @@ function App() {
       const response = await axios.get(`${API_URL}/ai-move`);
       setFen(response.data.fen);
       setPlayerTurn(response?.data?.turn)
+      setMoveList(response?.data?.moveList || []);
+      console.log(response.data.moveList);
 
       if (response.data.gameOver) {
         await checkGameResult();
@@ -123,6 +130,9 @@ function App() {
       setWinner(response.data.winner);
       setGameStatus('undo move done!!!');
       setFen(response?.data?.fen)
+
+     
+      
     } catch (error) {
       console.error('Error checking game result:', error);
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
@@ -133,23 +143,28 @@ function App() {
     }
   };
 
-  const handleRedoMove = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/redo-move`);
-      console.log("undo move :", response.data);
-      setIsGameOver(response.data?.gameOver);
-      setWinner(response.data.winner);
-      setGameStatus('undo move done!!!');
-      setFen(response?.data?.fen)
-    } catch (error) {
-      console.error('Error checking game result:', error);
-      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
-        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
-      } else {
-        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
-      }
-    }
-  };
+
+
+  const handleStepBack = () => {
+   
+      
+
+    
+    setCurrentHistoryPointer(moveList.length);
+    console.log(currentHistoryPointer);
+    console.log("cur_pointer",currentHistoryPointer,"movelist_len:",moveList.length );
+
+    console.log(game.move(moveList[moveList.length-currentHistoryPointer]));
+    setFen(game.fen());
+    setPlayerTurn(game.turn())
+    
+    
+    console.log("move list:", moveList[moveList.length-currentHistoryPointer]);
+
+     
+  
+  }
+
 
   const handleDrawGame = async () => {
     try {
@@ -172,13 +187,10 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/resign-game`);
       console.log(response.data.message);
-  
-      setIsGameOver(true);
+      setIsGameOver(response?.data?.gameOver);
       setGameStatus(response.data.message || 'Game resigned');
-  
     } catch (error) {
       console.error('Error resigning game:', error);
-  
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
         setGameStatus('Lost connection to the game server. Please check if the backend is running.');
       } else {
@@ -186,7 +198,11 @@ function App() {
       }
     }
   };
-  
+
+
+
+
+
 
 
   const onDrop = (sourceSquare, targetSquare) => {
@@ -201,31 +217,63 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Chess Game</h1>
+      <h2>Chess Game {currentHistoryPointer}</h2>
       <button>{(PlayerTurn === 'w' && "Your's Turn") || (PlayerTurn === 'b' && "Computer's Turn")}</button>
+      <div className='main-container'>
 
-      <div className="board-container">
-        <Chessboard
-          position={fen}
-          onPieceDrop={onDrop}
-          boardWidth={400}
-          areArrowsAllowed={true}
-          showBoardNotation={true}
-          boardOrientation="white"
-          customDarkSquareStyle={{ backgroundColor: '#b58863' }}
-          customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
-          animationDuration={200}
-          customDropSquareStyle={{ boxShadow: 'inset 0 0 1px 4px yellow' }}
-        />
+        <div className="board-container">
+          <Chessboard
+            position={fen}
+            onPieceDrop={onDrop}
+            boardWidth={450}
+            areArrowsAllowed={true}
+            showBoardNotation={true}
+            boardOrientation="white"
+            customDarkSquareStyle={{ backgroundColor: '#b58863' }}
+            customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
+            animationDuration={200}
+            customDropSquareStyle={{ boxShadow: 'inset 0 0 1px 4px yellow' }}
+          />
 
-      </div>
-      <div className='game-Btn'>
-        <SkipPreviousIcon onClick={startNewGame}/>
-        <ChevronLeftIcon onClick={handleUndoMove}/>
-        <ChevronRightIcon onClick={handleRedoMove} />
-        <SkipNextIcon onClick={startNewGame} />
-        <FlipIcon />
-        <ReplayIcon onClick={handleUndoMove} />
+          <div className='game-Btn'>
+            <SkipPreviousIcon onClick={startNewGame} />
+            <ChevronLeftIcon onClick={handleStepBack} />
+            <ChevronRightIcon onClick={handleStepBack} />
+            <SkipNextIcon onClick={startNewGame} />
+            <FlipIcon />
+            <ReplayIcon onClick={handleUndoMove} />
+          </div>
+
+          <div className="game-status">
+            <button onClick={startNewGame} className="new-game-btn">
+              Reset Game
+            </button>
+            <button onClick={handleResignGame} className="new-game-btn">
+              Resign Game
+            </button>
+            <button onClick={handleDrawGame} className="new-game-btn">
+              Draw
+            </button>
+            <p>{gameStatus}</p>
+          </div>
+        </div>
+        <div className="move-list">
+          <h3>Move List</h3>
+          <div className="moves-container">
+            {moveList && moveList.length > 0 &&
+              moveList.map((move, index) =>
+                index % 2 === 0 ? (
+                  <div key={index} className="move-item">
+
+                    <span className="white-move">{Math.floor(index / 2) + 1}. {move}</span>
+                    <span className="black-move">{moveList[index + 1] || ''}</span>
+                  </div>
+                ) : null
+              )}
+          </div>
+        </div>
+
+
       </div>
 
 

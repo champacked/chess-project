@@ -37,6 +37,7 @@ export const playerMove = async (req, res) => {
 
         const result = game.move(move);
         console.log("move ", result)
+        console.log(game.history());
         if (!result) {
             return res.status(400).json({ error: "Invalid move" });
         }
@@ -46,7 +47,8 @@ export const playerMove = async (req, res) => {
             move: result,
             fen: game.fen(),
             turn: game.turn(),
-            gameOver: game.isGameOver()
+            gameOver: game.isGameOver(),
+            moveList:game.history()
         });
 
     } catch (error) {
@@ -90,6 +92,7 @@ export const aiMove = async (req, res) => {
 
             const bestMove = data.bestmove?.split(" ")[1] || data.bestmove;
             const result = game.move(bestMove);
+            console.log("2",game.history());
 
             // after automatic move by stockfish check game is over
 
@@ -103,13 +106,14 @@ export const aiMove = async (req, res) => {
                         mate: data.mate,
                         gameOver: game.isGameOver(),
                         winner: `${game.turn() === "w" ? "Black" : "White"}`,
+                       
                     })
             }
 
             if (!result) {
                 return res.status(500).json({ error: "AI move was invalid" });
             }
-            stack.push(game.fen());
+            stack.push({fen:game.fen(), turn:game.turn()});
  
             return res.status(200).json({
                 message: "AI moved",
@@ -118,7 +122,8 @@ export const aiMove = async (req, res) => {
                 evaluation: data.evaluation,
                 mate: data.mate,
                 gameOver: game.isGameOver(),
-                turn: game.turn()
+                turn: game.turn(),
+                moveList:game.history(),
 
             });
 
@@ -173,10 +178,13 @@ export const undoMove = async (req, res) => {
         return res.status(401).json({ error: "Game is not initialized" });
     }
     else {
-        const undo_move = game.undo();
+        let undo_move = game.undo();
+           undo_move= game.undo();
+
 
         if (undo_move) {
-            stack.push(game.fen());
+             
+            stack.push({fen:game.fen(), turn:game.turn()});
             console.log(stack);
             return res.status(200).json(
                 {
@@ -195,20 +203,22 @@ export const undoMove = async (req, res) => {
 }
 
 // redo move or go back to next game state
-export const redoMove = async (req, res) => {
+export const gameStepBack = async (req, res) => {
     if (!game) {
 
         return res.status(401).json({ error: "Game is not initialized" });
     }
-    else {
-        const redo_move = stack.shift();
-        console.log("redo :-", redo_move)
+    else { 
 
+        const redo_move = stack.pop();
+        console.log("redo move ", redo_move);
         if (redo_move) {
+            
+            
             return res.status(200).json(
                 {
-                    fen: redo_move,
-                    turn: game.turn(),
+                    fen: redo_move?.fen,
+                    turn: redo_move?.turn,
                     gameOver: game.isGameOver(),
 
                 })
@@ -222,6 +232,7 @@ export const redoMove = async (req, res) => {
 
 
 }
+
 
 // get the move turn 
 export const moveTurn = async (req, res) => {
@@ -303,26 +314,8 @@ export const resignGame = async (req, res) => {
     if (!game) {
         return res.status(400).json({ error: "Game is not initialized" });
     }
-
-  //  game.isGameOver();
-
+     
     res.json({ message: "Game over. A player has resigned.",
         gameOver:true,
      });
 };
-
-
-// export const resignGame = async (req, res) => {
-//     if (!game) {
-//         return res.status(401).json({ error: "Game is not initialized" });
-//     }
-
-//     const { gameId, player } = req.body;
-
-//     if (!game[gameId]) {
-//         return res.status(400).json({ error: 'Invalid game ID' });
-//     }
-
-//     game[gameId].status = 'ended';
-//     res.json({ gameId, message: `${player} has resigned. Game over.` });
-// };
