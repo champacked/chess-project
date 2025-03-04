@@ -92,7 +92,7 @@ function App() {
       setFen(response.data.fen);
       setPlayerTurn(response?.data?.turn)
       setMoveList(response?.data?.moveList || []);
-      // console.log(response.data.moveList);
+     
 
       if (response.data.gameOver) {
         await checkGameResult();
