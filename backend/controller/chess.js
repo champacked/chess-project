@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 let game = new Chess();
 
-const stack=[];
+let moveList = [];
 
 // start the game 
 export const startGame = async (req, res) => {
@@ -35,9 +35,10 @@ export const playerMove = async (req, res) => {
 
     try {
 
+        moveList = game.history();
         const result = game.move(move);
-        console.log("move ", result)
-        console.log(game.history());
+        // console.log("move ", result)
+        // console.log(game.history());
         if (!result) {
             return res.status(400).json({ error: "Invalid move" });
         }
@@ -48,7 +49,7 @@ export const playerMove = async (req, res) => {
             fen: game.fen(),
             turn: game.turn(),
             gameOver: game.isGameOver(),
-            moveList:game.history()
+            moveList: moveList,
         });
 
     } catch (error) {
@@ -92,7 +93,7 @@ export const aiMove = async (req, res) => {
 
             const bestMove = data.bestmove?.split(" ")[1] || data.bestmove;
             const result = game.move(bestMove);
-            console.log("2",game.history());
+            // console.log("2", game.history());
 
             // after automatic move by stockfish check game is over
 
@@ -106,15 +107,16 @@ export const aiMove = async (req, res) => {
                         mate: data.mate,
                         gameOver: game.isGameOver(),
                         winner: `${game.turn() === "w" ? "Black" : "White"}`,
-                       
+
                     })
             }
 
             if (!result) {
                 return res.status(500).json({ error: "AI move was invalid" });
             }
-            stack.push({fen:game.fen(), turn:game.turn()});
- 
+
+
+            moveList = game.history();
             return res.status(200).json({
                 message: "AI moved",
                 bestMove,
@@ -123,7 +125,7 @@ export const aiMove = async (req, res) => {
                 mate: data.mate,
                 gameOver: game.isGameOver(),
                 turn: game.turn(),
-                moveList:game.history(),
+                moveList: moveList,
 
             });
 
@@ -179,11 +181,10 @@ export const undoMove = async (req, res) => {
     }
     else {
         let undo_move = game.undo();
-           undo_move= game.undo();
+        undo_move = game.undo();
 
         if (undo_move) {
-            stack.push({fen:game.fen(), turn:game.turn()});
-            console.log(stack);
+
             return res.status(200).json(
                 {
                     fen: game.fen(),
@@ -200,36 +201,103 @@ export const undoMove = async (req, res) => {
     }
 }
 
-// redo move or go back to next game state
+//  go back to previous game state
 export const gameStepBack = async (req, res) => {
+
     if (!game) {
 
         return res.status(401).json({ error: "Game is not initialized" });
     }
-    else { 
+    else {
+        let undo_move = game.undo();
 
-        const redo_move = stack.pop();
-        console.log("redo move ", redo_move);
-        if (redo_move) {
-            
-            
+        // console.log("<---", moveList);
+        if (undo_move) {
+
             return res.status(200).json(
                 {
-                    fen: redo_move?.fen,
-                    turn: redo_move?.turn,
+                    fen: game.fen(),
+                    turn: game.turn(),
                     gameOver: game.isGameOver(),
 
                 })
         } else {
             return res.status(400).json(
                 {
-                    error: "there is No Move to undo!!!"
+                    error: "there is No Move to go back !!!"
                 })
         }
     }
 
+}
+
+export const gameStepAhead = async (req, res) => {
+
+    if (!game) {
+
+        return res.status(401).json({ error: "Game is not initialized" });
+    }
+    else {
+
+        const { stepahead } = req.query;
+        const redo_move = game.move(stepahead);
+
+        if (redo_move) {
+            
+            return res.status(200).json(
+                {
+                    fen: game.fen(),
+                    turn: game.turn(),
+                    gameOver: game.isGameOver(),
+
+                })
+                
+        } else {
+            return res.status(400).json(
+                {
+                    error: "there is No Move to go back !!!"
+                })
+        }
+    }
 
 }
+
+
+export const moveEnd = async (req, res) => {
+    try {
+        if (!game) {
+            return res.status(401).json({ error: "Game is not initialized" });
+        }
+
+        if (!moveList || moveList.length === 0) {
+            return res.status(400).json({ error: "No moves available to replay!" });
+        }
+    
+        game.reset();
+        let lastValidMove;
+        for (let move of moveList) {    
+            lastValidMove = game.move(move);
+            if (!lastValidMove) {
+                return res.status(400).json({ error: `Invalid move detected: ${JSON.stringify(move)}` });
+            }
+        }
+
+        return res.status(200).json({
+            fen: game.fen(),
+            turn: game.turn(),
+            gameOver: game.isGameOver(),
+            moveList,
+        });
+    } catch (error) {
+        console.error("Error in moveEnd:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+
+
+
 
 
 // get the move turn 
@@ -270,11 +338,11 @@ export const drawGame = async (req, res) => {
         else if (game.isDrawByFiftyMoves()) {
             return res.status(200).json({
                 message: "Draw By Fifty Moves",
-            }); 
+            });
         } else if (game.isInsufficientMaterial()) {
             return res.status(200).json({
                 message: "draw due InsufficientMaterial",
-            });  
+            });
 
         } else {
 
@@ -285,23 +353,22 @@ export const drawGame = async (req, res) => {
 
 
             const data = await response.json();
-            if (data && data.evaluation && Math.abs(data.evaluation) < 50) 
-            {
+            if (data && data.evaluation && Math.abs(data.evaluation) < 10) {
                 console.log(game.isDraw());
                 return res.status(200).json({
                     message: "draw accepted",
-                    isGameDraw:true
-                });     
+                    isGameDraw: true
+                });
             }
 
             return res.status(400).json({
                 message: "draw delined",
-                isGameDraw:false,
-                
+                isGameDraw: false,
+
             });
 
         }
-    } catch (error){
+    } catch (error) {
 
         return res.status(500).json({ error: "Internal Server Error" });
     }
@@ -312,8 +379,9 @@ export const resignGame = async (req, res) => {
     if (!game) {
         return res.status(400).json({ error: "Game is not initialized" });
     }
-     
-    res.json({ message: "Game over. A player has resigned.",
-        gameOver:true,
-     });
+
+    res.json({
+        message: "Game over. A player has resigned.",
+        gameOver: true,
+    });
 };

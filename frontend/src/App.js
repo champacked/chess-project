@@ -17,14 +17,14 @@ console.log(API_URL);
 
 function App() {
   
-  const [fen, setFen] = useState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+  const game = new Chess()
+  const [fen, setFen] = useState(game.fen());
   const [gameStatus, setGameStatus] = useState('');
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState('');
   const [PlayerTurn, setPlayerTurn] = useState('');
   const [moveList, setMoveList] = useState([]);
-  let [currentHistoryPointer, setCurrentHistoryPointer] = useState(0)
-  const game = new Chess()
+  const [currentHistoryPointer, setCurrentHistoryPointer] = useState(0)
   
   const startNewGame = useCallback(async () => {
     try {
@@ -35,7 +35,8 @@ function App() {
       setGameStatus('Game Status: Playing');
       setPlayerTurn(response?.data?.turn);
       setMoveList([])
-      
+      setCurrentHistoryPointer(0);
+
 
     } catch (error) {
       console.error('Error starting new game:', error);
@@ -63,7 +64,7 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/move`, { move });
       setFen(response.data.fen);
-      console.log(response.data);
+      // console.log(response.data);
       setPlayerTurn(response?.data?.turn);
       setMoveList(response?.data?.moveList || []);
 
@@ -91,7 +92,7 @@ function App() {
       setFen(response.data.fen);
       setPlayerTurn(response?.data?.turn)
       setMoveList(response?.data?.moveList || []);
-      console.log(response.data.moveList);
+      // console.log(response.data.moveList);
 
       if (response.data.gameOver) {
         await checkGameResult();
@@ -147,24 +148,112 @@ function App() {
 
 
 
-  const handleStepBack = () => {
+  const handleStepBack = async() => {
    
+    
+    try {
+      console.log(currentHistoryPointer)
+      if(moveList&&moveList.length>0&&currentHistoryPointer<moveList.length)
+        {
+
+          const stepback=moveList[moveList.length-1-currentHistoryPointer]
+          
+        
+          console.log(currentHistoryPointer)
+          
+          const response = await axios.get(`${API_URL}/step-back`, {
+            params: { stepback }
+          });
+          
+          setFen(response?.data?.fen);
+          setPlayerTurn(response?.data?.turn)
+          console.log(response);
+          console.log(moveList);
+          
+          setCurrentHistoryPointer((prev)=>prev+1);
+          
+          
+        }else
+        {
+          alert("fhfhhfhf")
+        }
       
-
-    
-    setCurrentHistoryPointer(moveList.length);
-    console.log(currentHistoryPointer);
-    console.log("cur_pointer",currentHistoryPointer,"movelist_len:",moveList.length );
-
-    console.log(game.move(moveList[moveList.length-currentHistoryPointer]));
-    setFen(game.fen());
-    setPlayerTurn(game.turn())
-    
-    
-    console.log("move list:", moveList[moveList.length-currentHistoryPointer]);
-
-     
+      } catch (error) {
+        console.error('Error checking game result:', error);
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
+  }
   
+  const handleStepAhead = async() => {
+   
+    
+    try {
+       
+      if(moveList&&moveList.length>0&&currentHistoryPointer<moveList.length)
+        {
+         
+          const stepahead=moveList[moveList.length-currentHistoryPointer]
+          
+          
+          console.log(currentHistoryPointer)
+          console.log(moveList.length);
+          
+          const response = await axios.get(`${API_URL}/step-ahead`, {
+            params: { stepahead }
+          });
+          
+          setFen(response?.data?.fen);
+          setPlayerTurn(response?.data?.turn)
+          
+          
+          
+          setCurrentHistoryPointer((prev)=>prev-1);
+        }else
+        {
+          alert("fhfhhfhf")
+        }
+      
+    } catch (error) {
+      console.error('Error checking game result:', error);
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
+  }
+  const handleMoveEnd = async() => {
+   
+    
+    try {
+       
+      if(moveList&&moveList.length>0)
+        {
+         
+          const response = await axios.get(`${API_URL}/move-end`);
+          
+          setFen(response?.data?.fen);
+          setPlayerTurn(response?.data?.turn)
+          setMoveList(response?.data?.moveList);         
+          
+         
+        }else
+        {
+          alert("fhfhhfhf")
+        }
+      
+    } catch (error) {
+      console.error('Error checking game result:', error);
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
   }
 
 
@@ -240,8 +329,8 @@ function App() {
           <div className='game-Btn'>
             <SkipPreviousIcon onClick={startNewGame} />
             <ChevronLeftIcon onClick={handleStepBack} />
-            <ChevronRightIcon onClick={handleStepBack} />
-            <SkipNextIcon onClick={startNewGame} />
+            <ChevronRightIcon onClick={handleStepAhead} />
+            <SkipNextIcon onClick={handleMoveEnd} />
             <FlipIcon />
             <ReplayIcon onClick={handleUndoMove} />
           </div>
