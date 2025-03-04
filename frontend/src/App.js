@@ -16,7 +16,7 @@ console.log(API_URL);
 
 
 function App() {
-  
+
   const game = new Chess()
   const [fen, setFen] = useState(game.fen());
   const [gameStatus, setGameStatus] = useState('');
@@ -25,7 +25,7 @@ function App() {
   const [PlayerTurn, setPlayerTurn] = useState('');
   const [moveList, setMoveList] = useState([]);
   const [currentHistoryPointer, setCurrentHistoryPointer] = useState(0)
-  
+
   const startNewGame = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/new-game`);
@@ -64,7 +64,7 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/move`, { move });
       setFen(response.data.fen);
-      // console.log(response.data);
+
       setPlayerTurn(response?.data?.turn);
       setMoveList(response?.data?.moveList || []);
 
@@ -92,7 +92,7 @@ function App() {
       setFen(response.data.fen);
       setPlayerTurn(response?.data?.turn)
       setMoveList(response?.data?.moveList || []);
-     
+
 
       if (response.data.gameOver) {
         await checkGameResult();
@@ -134,8 +134,8 @@ function App() {
       setGameStatus('undo move done!!!');
       setFen(response?.data?.fen)
 
-     
-      
+
+
     } catch (error) {
       console.error('Error checking game result:', error);
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
@@ -148,75 +148,31 @@ function App() {
 
 
 
-  const handleStepBack = async() => {
-   
-    
+  const handleStepBack = async () => {
+
+
     try {
       console.log(currentHistoryPointer)
-      if(moveList&&moveList.length>0&&currentHistoryPointer<moveList.length)
-        {
+      if (moveList && moveList.length > 0 && currentHistoryPointer < moveList.length) {
 
-          const stepback=moveList[moveList.length-1-currentHistoryPointer]
-          
-        
-          console.log(currentHistoryPointer)
-          
-          const response = await axios.get(`${API_URL}/step-back`, {
-            params: { stepback }
-          });
-          
-          setFen(response?.data?.fen);
-          setPlayerTurn(response?.data?.turn)
-          console.log(response);
-          console.log(moveList);
-          
-          setCurrentHistoryPointer((prev)=>prev+1);
-          
-          
-        }else
-        {
-          alert("fhfhhfhf")
-        }
-      
-      } catch (error) {
-        console.error('Error checking game result:', error);
-      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
-        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+        const stepback = moveList[moveList.length - 1 - currentHistoryPointer]
+
+
+        console.log(currentHistoryPointer)
+
+        const response = await axios.get(`${API_URL}/step-back`, {
+          params: { stepback }
+        });
+
+        setFen(response?.data?.fen);
+        setPlayerTurn(response?.data?.turn)
+        console.log(response);
+        console.log(moveList);
+        setCurrentHistoryPointer((prev) => prev + 1);
       } else {
-        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+        alert("fhfhhfhf")
       }
-    }
-  }
-  
-  const handleStepAhead = async() => {
-   
-    
-    try {
-       
-      if(moveList&&moveList.length>0&&currentHistoryPointer<moveList.length)
-        {
-         
-          const stepahead=moveList[moveList.length-currentHistoryPointer]
-          
-          
-          console.log(currentHistoryPointer)
-          console.log(moveList.length);
-          
-          const response = await axios.get(`${API_URL}/step-ahead`, {
-            params: { stepahead }
-          });
-          
-          setFen(response?.data?.fen);
-          setPlayerTurn(response?.data?.turn)
-          
-          
-          
-          setCurrentHistoryPointer((prev)=>prev-1);
-        }else
-        {
-          alert("fhfhhfhf")
-        }
-      
+
     } catch (error) {
       console.error('Error checking game result:', error);
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
@@ -226,26 +182,47 @@ function App() {
       }
     }
   }
-  const handleMoveEnd = async() => {
-   
-    
+
+  const handleStepAhead = async () => {
     try {
-       
-      if(moveList&&moveList.length>0)
-        {
-         
-          const response = await axios.get(`${API_URL}/move-end`);
-          
-          setFen(response?.data?.fen);
-          setPlayerTurn(response?.data?.turn)
-          setMoveList(response?.data?.moveList);         
-          
-         
-        }else
-        {
-          alert("fhfhhfhf")
-        }
-      
+
+      if (moveList && moveList.length > 0 && currentHistoryPointer < moveList.length) {
+
+        const stepahead = moveList[moveList.length - currentHistoryPointer]
+        console.log(currentHistoryPointer)
+        console.log(moveList.length);
+        const response = await axios.get(`${API_URL}/step-ahead`, {
+          params: { stepahead }
+        });
+
+        setFen(response?.data?.fen);
+        setPlayerTurn(response?.data?.turn)
+        setCurrentHistoryPointer((prev) => prev - 1);
+      } else {
+        alert("error")
+      }
+
+    } catch (error) {
+      console.error('Error checking game result:', error);
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        setGameStatus('Lost connection to the game server. Please check if the backend is running.');
+      } else {
+        setGameStatus(`Error checking game result: ${error.response?.data?.error || 'Please start a new game'}`);
+      }
+    }
+  }
+  const handleMoveEnd = async () => {
+    try {
+
+      if (moveList && moveList.length > 0) {
+
+        const response = await axios.get(`${API_URL}/move-end`);
+        setFen(response?.data?.fen);
+        setPlayerTurn(response?.data?.turn)
+        setMoveList(response?.data?.moveList);
+      } else {
+        alert("error")
+      }
     } catch (error) {
       console.error('Error checking game result:', error);
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
@@ -368,7 +345,7 @@ function App() {
       </div>
 
 
-      
+
     </div>
   );
 }
