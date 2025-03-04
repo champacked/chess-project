@@ -37,8 +37,7 @@ export const playerMove = async (req, res) => {
 
         moveList = game.history();
         const result = game.move(move);
-        // console.log("move ", result)
-        // console.log(game.history());
+      
         if (!result) {
             return res.status(400).json({ error: "Invalid move" });
         }
@@ -71,8 +70,6 @@ export const aiMove = async (req, res) => {
 
     const validTurn = game.turn();
     if (validTurn === 'b') {
-
-
         // find best move 
         try {
 
@@ -84,8 +81,6 @@ export const aiMove = async (req, res) => {
             );
 
             const data = await response.json();
-
-
             if (!data && !data.success || !data.bestmove) {
 
                 return res.status(500).json({ error: "Stockfish API  error" });
@@ -93,8 +88,7 @@ export const aiMove = async (req, res) => {
 
             const bestMove = data.bestmove?.split(" ")[1] || data.bestmove;
             const result = game.move(bestMove);
-            // console.log("2", game.history());
-
+           
             // after automatic move by stockfish check game is over
 
             if (game.isGameOver()) {
@@ -115,7 +109,6 @@ export const aiMove = async (req, res) => {
                 return res.status(500).json({ error: "AI move was invalid" });
             }
 
-
             moveList = game.history();
             return res.status(200).json({
                 message: "AI moved",
@@ -128,7 +121,6 @@ export const aiMove = async (req, res) => {
                 moveList: moveList,
 
             });
-
 
         } catch (error) {
 
@@ -211,7 +203,7 @@ export const gameStepBack = async (req, res) => {
     else {
         let undo_move = game.undo();
 
-        // console.log("<---", moveList);
+       
         if (undo_move) {
 
             return res.status(200).json(
@@ -295,11 +287,6 @@ export const moveEnd = async (req, res) => {
 };
 
 
-
-
-
-
-
 // get the move turn 
 export const moveTurn = async (req, res) => {
     if (!game) {
@@ -351,7 +338,6 @@ export const drawGame = async (req, res) => {
 
             const response = await fetch(`https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=${depth}`);
 
-
             const data = await response.json();
             if (data && data.evaluation && Math.abs(data.evaluation) < 10) {
                 console.log(game.isDraw());
@@ -360,7 +346,6 @@ export const drawGame = async (req, res) => {
                     isGameDraw: true
                 });
             }
-
             return res.status(400).json({
                 message: "draw delined",
                 isGameDraw: false,
@@ -380,7 +365,7 @@ export const resignGame = async (req, res) => {
         return res.status(400).json({ error: "Game is not initialized" });
     }
 
-    res.json({
+    return res.json({
         message: "Game over. A player has resigned.",
         gameOver: true,
     });
